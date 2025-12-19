@@ -1,10 +1,23 @@
+resource "azurerm_network_interface" "nic" {
+  name                = var.nic_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
   location            = var.location
   resource_group_name = var.resource_group_name
   size                = var.vm_size
+  admin_username      = var.admin_username
 
-  admin_username = var.admin_username
+  disable_password_authentication = true
 
   network_interface_ids = [
     azurerm_network_interface.nic.id
@@ -27,3 +40,4 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 }
+

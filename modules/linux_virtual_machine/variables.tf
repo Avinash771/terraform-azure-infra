@@ -1,11 +1,7 @@
-variable "location" {
-  default = "centralindia"
-}
+variable "nic_name" {}
+variable "vm_name" {}
+variable "vm_size" {}
+variable "admin_username" {}
+variable "location" {}
+variable "resource_group_name" {}
 
-variable "resource_group_name" {
-  default = "dev-rg"
-}
-
-variable "subnet_id" {
-  description = "Subnet ID where NIC will be attached"
-}

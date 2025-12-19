@@ -1,4 +1,4 @@
-variable "name_rg" {}
+variable "rg_name" {}
 variable "location" {
   
 }
