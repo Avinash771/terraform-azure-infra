@@ -93,4 +93,4 @@ stages:
         commandOptions: '--auto-approve'
         environmentServiceNameAzureRM: $(azureServiceConnection)
         environmentAzureRmOverrideSubscriptionID: $(subscriptionId)
-"
+
