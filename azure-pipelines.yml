@@ -1,0 +1,96 @@
+trigger:
+  branches: 
+    include:
+      - main
+
+pool: Azure Pipelines
+
+variables:
+  terraformVersion: 'latest'
+
+  # Azure details
+  azureServiceConnection: 'azureinfra'
+  subscriptionId: 'b6571c78-f766-4999-8358-e9602abe50cf'
+
+  # Terraform paths
+  tfWorkingDir: '$(System.DefaultWorkingDirectory)/environment/dev'
+ 
+
+  # Backend configuration
+  backendRG: 'myResourceGroup'
+  backendStorage: 'avistorage888'
+  backendContainer: 'avicnt'
+  backendKey: 'ram.terraform.tfstate'
+
+stages:
+- stage: INITSTAGE
+  displayName: "Terraform Init & Plan Stage"
+  jobs:
+  - job: INITJOB
+    displayName: "Terraform Init Job"
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: $(terraformVersion)
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: $(tfWorkingDir)
+        backendServiceArm: $(azureServiceConnection)
+        backendAzureRmOverrideSubscriptionID: $(subscriptionId)
+        backendAzureRmResourceGroupName: $(backendRG)
+        backendAzureRmStorageAccountName: $(backendStorage)
+        backendAzureRmContainerName: $(backendContainer)
+        backendAzureRmKey: $(backendKey)
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: $(tfWorkingDir)
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'custom'
+        customCommand: 'fmt'
+        outputTo: 'console'
+        environmentServiceNameAzureRM: $(azureServiceConnection)
+        environmentAzureRmOverrideSubscriptionID: $(subscriptionId)
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        environmentServiceNameAzureRM: $(azureServiceConnection)
+        environmentAzureRmOverrideSubscriptionID: $(subscriptionId)
+
+- stage: ValidationStage
+  displayName: "Manual Approval Stage"
+  jobs:
+  - job: validationJob
+    pool: server
+    steps:
+    - task: ManualValidation@1
+      inputs:
+        notifyUsers: '@abhi'
+        approvers: '@abhi'
+        instructions: 'plz approve'
+
+- stage: InfraDeploymentStage
+  displayName: "Terraform Apply Stage"
+  jobs:
+  
+  - job: InfraDeploymentJob
+    pool: Default
+    steps:
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        commandOptions: '--auto-approve'
+        environmentServiceNameAzureRM: $(azureServiceConnection)
+        environmentAzureRmOverrideSubscriptionID: $(subscriptionId)
+"
